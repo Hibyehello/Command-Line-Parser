@@ -9,7 +9,8 @@ Defining a `COMMAND` option is as easy as
 > `parser.addOption(COMMAND, "test", "t");`
 
 `COMMAND` is used to determine that the argument is a `COMMAND` option
-**NOTE** `COMMAND` options when defined are required before `FLAG` options, as it is expected that `FLAG` options
+
+**NOTE** `COMMAND` options when defined are required before `FLAG` options when using `parseArgs`, as it is expected that `FLAG` options
 are used to modify the command.
 
 *For more info on any structs refer to the bottom of this README and parser.h.*
