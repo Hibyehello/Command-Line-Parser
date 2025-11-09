@@ -183,4 +183,7 @@ void ArgParser::addOptionDesc(const char *opt_name, const char *desc) {
   if (it != flags.end()) {
     (*it)->desc = desc;
   }
+
+  fprintf(stderr, "No Option with specified name exists\n");
+  exit(EXIT_FAILURE);
 }
