@@ -10,13 +10,16 @@ enum ArgType { NONE, STR, NUM };
 
 struct Option {
   OptionType type;
+
   const char *verbose_name;
   const char *short_name;
+
   ArgType arg_type;
   const char *arg_name;
-  const char *desc = "";
   long arg_num = 0;
   const char *arg_str = "";
+
+  const char *desc = "";
 
   void printUsage() const;
   void parseArg(const char *arg);

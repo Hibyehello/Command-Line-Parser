@@ -1,5 +1,4 @@
 # Hibyehello's Command-line Argument Parser
----
 
 This is a super basic argument parser, built to be easy to use and relatively flexible.
 
@@ -25,21 +24,50 @@ Defining a `FLAG` option is as easy as
 There are two options for parsing Options
 
 1. 
-  > parser.parseArgs();
+  `parser.parseArgs();`
   
   This will loop through all arguments and store them in the `Arg` struct, which has two members, `in_command` and `in_flags`. The `Arg` struct stores a single command and a vector of flags, that you can can then apply your own logic to.
 
 2. 
-  > parser.parseCommand();
+  `parser.parseCommand();`
   
   This returns the next `COMMAND` option in the arguments, and it also also takes an option boolean that will reset the parsers command check to allow for using multiple commands.
   
   This function increments the parsers argument index
   
-  > parser.parseArgs();
+  `parser.parseArgs();`
 
   This returns the next `FLAG` option in the arguments that you can then fetch the arguments (if specified to hold an argument).
   
-  > parser.canParse();
+  `parser.canParse();`
   
   This returns true if there is still more arguments to parse
+  
+  
+## Structs
+
+``` 
+struct Option {
+  OptionType type;
+  
+  const char *verbose_name;
+  const char *short_name;
+  
+  ArgType arg_type;
+  const char *arg_name;
+  long arg_num = 0;
+  const char *arg_str = "";
+  
+  const char *desc = "";
+  
+  void printUsage() const;
+  void parseArg(const char *arg);
+};
+```
+
+```
+struct Arg {
+  Option *in_command;
+  std::vector<Option *> in_flags;
+};
+```
