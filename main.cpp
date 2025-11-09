@@ -8,11 +8,12 @@ int main(int argc, const char *argv[]) {
 
   parser.parseCommand();
 
-  parser.addOption(FLAG, "number", "n", NUM, "frame_count");
-  parser.addOption(FLAG, "text", "t", STR, "ghost.rkg");
+  parser.addOption(FLAG, "number", "n", NUM, "number");
+  parser.addOption(FLAG, "text", "t", STR, "string");
   parser.addOption(FLAG, "arg");
-  parser.addOptionDesc("framecount", "Specify a number of frames");
-  parser.addOptionDesc("ghost", "Specify a ghost");
+  parser.addOptionDesc("number", "Send a number to the program");
+  parser.addOptionDesc("text", "Send text to the program");
+  parser.addOptionDesc("arg", "Example Arg");
 
   while (parser.canParse()) {
     Option *flag = parser.parseFlags();

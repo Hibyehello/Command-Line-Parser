@@ -6,6 +6,4 @@ add_executable(parser
   main.cpp
   parser.cpp
   parser.h
-  math.cpp
-  math.h
 )

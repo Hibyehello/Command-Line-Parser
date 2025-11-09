@@ -68,9 +68,9 @@ Option *ArgParser::parseCommand(bool reset_command_found) {
     fprintf(stderr, "No arguments given!\n");
     return nullptr;
   }
-  if ((strcmp(argv[1] + 2, "help") == 0 || strcmp(argv[1] + 1, "h") == 0)) {
-    printUsage();
-    exit(EXIT_SUCCESS);
+  if ((strcmp(argv[arg_index] + 2, "help") == 0 ||
+       strcmp(argv[arg_index] + 1, "h") == 0)) {
+    return nullptr;
   }
 
   if (reset_command_found) {
