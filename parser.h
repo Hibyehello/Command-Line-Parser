@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <map>
 #include <vector>
 
@@ -27,18 +28,26 @@ struct Option {
 
   const char *desc = "";
 
-  std::function<void()> callback;
+  void (*callback)();
 
   void printUsage() const;
 
   void parseArg(const char *arg);
 };
 
+struct Options {
+  Option opts[std::numeric_limits<char>::max()];
+  int cur_loc = 0;
+  int next_free_loc = 0;
+
+  void addNext(Option opt) { opts[next_free_loc++] = opt; }
+  Option *getNext() { return &opts[cur_loc++]; }
+};
+
 struct Arg {
+  Options in_command;
 
-  Option *in_command;
-
-  std::vector<Option *> in_flags;
+  Options in_flags;
 };
 
 class ArgParser {
@@ -62,7 +71,7 @@ public:
                  const char *arg_name = "");
 
   void addOptionDesc(const char *opt_name, const char *desc);
-  void addCallback(const char *opt_name, std::function<void()> func);
+  void addCallback(const char *opt_name, void (*func)());
 
   bool canParse() { return arg_index < argc; };
 
@@ -75,9 +84,9 @@ private:
 
   int arg_index = 1;
 
-  std::vector<Option *> commands;
+  Options commands;
 
-  std::vector<Option *> flags;
+  Options flags;
 
   Arg in_args;
 

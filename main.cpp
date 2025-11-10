@@ -6,7 +6,7 @@ int main(int argc, const char *argv[]) {
   ArgParser parser("parser", argc, argv);
   parser.addOption(COMMAND, "test");
   parser.addOptionDesc("test", "Test command");
-  parser.addCallback("test", [&] { printf("Hello from Test Command!\n"); });
+  parser.addCallback("test", [] { printf("Hello from Test Command!\n"); });
 
   parser.parseCommand();
 

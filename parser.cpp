@@ -1,6 +1,5 @@
 #include "parser.h"
 
-#include <algorithm>
 #include <cerrno>
 #include <iomanip>
 #include <sstream>
@@ -77,25 +76,30 @@ Option *ArgParser::parseCommand(bool reset_command_found) {
     command_found = false;
   }
 
-  auto it = std::find_if(commands.begin(), commands.end(), [&](Option *opt) {
-    return (strcmp(opt->verbose_name, argv[arg_index]) == 0) ||
-           (strcmp(opt->short_name, argv[arg_index]) == 0);
-  });
+  // auto it = std::find_if(commands.begin(), commands.end(), [&](Option *opt) {
+  //   return (strcmp(opt->verbose_name, argv[arg_index]) == 0) ||
+  //          (strcmp(opt->short_name, argv[arg_index]) == 0);
+  // });
 
-  if (it != commands.end()) {
-    if (command_found) {
-      fprintf(stderr, "A command has already been specified!\n");
-      exit(EXIT_FAILURE);
+  commands.cur_loc = 0;
+  while (commands.cur_loc < commands.next_free_loc) {
+    Option *opt = commands.getNext();
+    if (strcmp(opt->verbose_name, argv[arg_index]) == 0 ||
+        (strcmp(opt->short_name, argv[arg_index]) == 0)) {
+      if (command_found) {
+        fprintf(stderr, "A command has already been specified!\n");
+        exit(EXIT_FAILURE);
+      }
+
+      in_args.in_command.addNext(*opt);
+      command_found = true;
+      arg_index++;
+
+      if (opt->callback)
+        opt->callback();
+
+      return opt;
     }
-
-    in_args.in_command = *it;
-    command_found = true;
-    arg_index++;
-
-    if ((*it)->callback)
-      (*it)->callback();
-
-    return *it;
   }
 
   if (!command_found) {
@@ -121,22 +125,22 @@ Option *ArgParser::parseFlags() {
     exit(EXIT_FAILURE);
   }
 
-  auto it = std::find_if(flags.begin(), flags.end(), [&](Option *opt) {
-    return (strcmp(opt->verbose_name, argv[arg_index] + 2) == 0) ||
-           (strcmp(opt->short_name, argv[arg_index] + 1) == 0);
-  });
+  flags.cur_loc = 0;
+  while (flags.cur_loc < flags.next_free_loc) {
+    Option *opt = flags.getNext();
+    if (strcmp(opt->verbose_name, argv[arg_index] + 2) == 0 ||
+        (strcmp(opt->short_name, argv[arg_index] + 1) == 0)) {
+      if (opt->arg_type != NONE) {
+        opt->parseArg(argv[++arg_index]);
+      }
+      in_args.in_flags.addNext(*opt);
+      arg_index++;
 
-  if (it != flags.end()) {
-    if ((*it)->arg_type != NONE) {
-      (*it)->parseArg(argv[++arg_index]);
+      if (opt->callback)
+        opt->callback();
+
+      return opt;
     }
-    in_args.in_flags.push_back((*it));
-    arg_index++;
-
-    if ((*it)->callback)
-      (*it)->callback();
-
-    return *it;
   }
 
   fprintf(stderr, "Unknown flag found '%s'\n", argv[arg_index]);
@@ -146,22 +150,26 @@ Option *ArgParser::parseFlags() {
 void ArgParser::printUsage() {
   std::stringstream out;
 
-  out << "Usage: " << m_name << (commands.size() > 0 ? " [COMMAND]" : "")
-      << (flags.size() > 0 ? " [OPTIONS] ..." : "");
+  out << "Usage: " << m_name << (commands.next_free_loc > 0 ? " [COMMAND]" : "")
+      << (flags.next_free_loc > 0 ? " [OPTIONS] ..." : "");
 
   printf("%s\n", out.str().c_str());
 
-  if (commands.size() > 0) {
+  if (commands.next_free_loc > 0) {
     printf("\nCommands:\n");
-    for (auto cmd : commands) {
-      cmd->printUsage();
+    commands.cur_loc = 0;
+    while (commands.cur_loc < commands.next_free_loc) {
+      Option *opt = commands.getNext();
+      opt->printUsage();
     }
   }
 
-  if (flags.size() > 0) {
+  if (flags.next_free_loc > 0) {
     printf("\nOptions:\n");
-    for (auto flag : flags) {
-      flag->printUsage();
+    flags.cur_loc = 0;
+    while (flags.cur_loc < flags.next_free_loc) {
+      Option *opt = flags.getNext();
+      opt->printUsage();
     }
   }
 }
@@ -170,49 +178,55 @@ void ArgParser::addOption(OptionType type, const char *verbose_name,
                           const char *short_name, ArgType arg_type,
                           const char *arg_name) {
   if (type == COMMAND) {
-    commands.push_back(new Option{type, verbose_name, short_name, NONE, ""});
+    commands.addNext(Option{type, verbose_name, short_name, NONE, ""});
     has_commands = true;
   } else {
-    flags.push_back(
-        new Option{type, verbose_name, short_name, arg_type, arg_name});
+    flags.addNext(Option{type, verbose_name, short_name, arg_type, arg_name});
   }
 }
 
 void ArgParser::addOptionDesc(const char *opt_name, const char *desc) {
-  auto it = std::find_if(commands.begin(), commands.end(), [&](Option *opt) {
-    return strcmp(opt->verbose_name, opt_name) == 0;
-  });
-  if (it != commands.end()) {
-    (*it)->desc = desc;
-    return;
+  commands.cur_loc = 0;
+  while (commands.cur_loc < commands.next_free_loc) {
+    Option *opt = commands.getNext();
+    if (strcmp(opt->verbose_name, opt_name) == 0) {
+      opt->desc = desc;
+      return;
+    }
   }
 
-  it = std::find_if(flags.begin(), flags.end(), [&](Option *opt) {
-    return strcmp(opt->verbose_name, opt_name) == 0;
-  });
-  if (it != flags.end()) {
-    (*it)->desc = desc;
-    return;
+  flags.cur_loc = 0;
+  while (flags.cur_loc < flags.next_free_loc) {
+    Option *opt = flags.getNext();
+    if (strcmp(opt->verbose_name, opt_name) == 0) {
+      opt->desc = desc;
+      return;
+    }
   }
 
   fprintf(stderr, "No Option with specified name exists\n");
   exit(EXIT_FAILURE);
 }
 
-void ArgParser::addCallback(const char *opt_name, std::function<void()> func) {
-  auto it = std::find_if(commands.begin(), commands.end(), [&](Option *opt) {
-    return strcmp(opt->verbose_name, opt_name) == 0;
-  });
-  if (it != commands.end()) {
-    (*it)->callback = func;
-    return;
+void ArgParser::addCallback(const char *opt_name, void (*func)()) {
+  commands.cur_loc = 0;
+  while (commands.cur_loc < commands.next_free_loc) {
+    Option *opt = commands.getNext();
+    if (strcmp(opt->verbose_name, opt_name) == 0) {
+      opt->callback = func;
+      return;
+    }
   }
 
-  it = std::find_if(flags.begin(), flags.end(), [&](Option *opt) {
-    return strcmp(opt->verbose_name, opt_name) == 0;
-  });
-  if (it != flags.end()) {
-    (*it)->callback = func;
-    return;
+  flags.cur_loc = 0;
+  while (flags.cur_loc < flags.next_free_loc) {
+    Option *opt = flags.getNext();
+    if (strcmp(opt->verbose_name, opt_name) == 0) {
+      opt->callback = func;
+      return;
+    }
   }
+
+  fprintf(stderr, "No Option with specified name exists\n");
+  exit(EXIT_FAILURE);
 }
