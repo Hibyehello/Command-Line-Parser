@@ -1,5 +1,7 @@
 # Hibyehello's Command-line Argument Parser
 
+**NOTE: This branch is built to minimize heap allocations and use the stack as much as possible, not recommended for typical usecases**
+
 This is a super basic argument parser, built to be easy to use and relatively flexible.
 
 ## Defining Arguments
