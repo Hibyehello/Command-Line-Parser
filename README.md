@@ -26,6 +26,10 @@ Defining a `FLAG` option is as easy as
 
 The first argument corresponds to an option that has already been added, and the second option is the description to print in the usage help prompt.
 
+> `parser.addCallback("test", [&] { printf("Hello from Test Command!\n"); });`
+
+The parser also supports defining callbacks that are called immediately upon finding the corresponding action. The First argument is the name of an added option, and the second option is the callback to be called.
+
 ## Parsing Arguments
 
 There are two options for parsing Options

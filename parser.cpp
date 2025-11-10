@@ -87,9 +87,14 @@ Option *ArgParser::parseCommand(bool reset_command_found) {
       fprintf(stderr, "A command has already been specified!\n");
       exit(EXIT_FAILURE);
     }
+
     in_args.in_command = *it;
     command_found = true;
     arg_index++;
+
+    if ((*it)->callback)
+      (*it)->callback();
+
     return *it;
   }
 
@@ -127,6 +132,10 @@ Option *ArgParser::parseFlags() {
     }
     in_args.in_flags.push_back((*it));
     arg_index++;
+
+    if ((*it)->callback)
+      (*it)->callback();
+
     return *it;
   }
 
@@ -175,6 +184,7 @@ void ArgParser::addOptionDesc(const char *opt_name, const char *desc) {
   });
   if (it != commands.end()) {
     (*it)->desc = desc;
+    return;
   }
 
   it = std::find_if(flags.begin(), flags.end(), [&](Option *opt) {
@@ -182,8 +192,27 @@ void ArgParser::addOptionDesc(const char *opt_name, const char *desc) {
   });
   if (it != flags.end()) {
     (*it)->desc = desc;
+    return;
   }
 
   fprintf(stderr, "No Option with specified name exists\n");
   exit(EXIT_FAILURE);
+}
+
+void ArgParser::addCallback(const char *opt_name, std::function<void()> func) {
+  auto it = std::find_if(commands.begin(), commands.end(), [&](Option *opt) {
+    return strcmp(opt->verbose_name, opt_name) == 0;
+  });
+  if (it != commands.end()) {
+    (*it)->callback = func;
+    return;
+  }
+
+  it = std::find_if(flags.begin(), flags.end(), [&](Option *opt) {
+    return strcmp(opt->verbose_name, opt_name) == 0;
+  });
+  if (it != flags.end()) {
+    (*it)->callback = func;
+    return;
+  }
 }
