@@ -95,7 +95,7 @@ Option *ArgParser::parseCommand(bool reset_command_found) {
       arg_index++;
 
       if (opt->callback)
-        opt->callback();
+        opt->callback(opt->callback_arg);
 
       return opt;
     }
@@ -136,8 +136,7 @@ Option *ArgParser::parseFlags() {
       arg_index++;
 
       if (opt->callback)
-        opt->callback();
-
+        opt->callback(opt->callback_arg);
       return opt;
     }
   }
@@ -210,12 +209,14 @@ void ArgParser::addOptionDesc(const char *opt_name, const char *desc) {
   exit(EXIT_FAILURE);
 }
 
-void ArgParser::addCallback(const char *opt_name, void (*func)()) {
+void ArgParser::addCallback(const char *opt_name, void (*func)(void *),
+                            void *data) {
   commands.cur_loc = 0;
   while (commands.cur_loc < commands.next_free_loc) {
     Option *opt = commands.getNext();
     if (strcmp(opt->verbose_name, opt_name) == 0) {
       opt->callback = func;
+      opt->callback_arg = data;
       return;
     }
   }

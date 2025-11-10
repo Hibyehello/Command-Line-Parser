@@ -23,7 +23,8 @@ struct Option {
 
   const char *desc = "";
 
-  void (*callback)();
+  void (*callback)(void *);
+  void *callback_arg;
 
   void printUsage() const;
 
@@ -66,7 +67,8 @@ public:
                  const char *arg_name = "");
 
   void addOptionDesc(const char *opt_name, const char *desc);
-  void addCallback(const char *opt_name, void (*func)());
+  void addCallback(const char *opt_name, void (*func)(void *),
+                   void *data = nullptr);
 
   bool canParse() { return arg_index < argc; };
 
