@@ -1,25 +1,24 @@
 #include "parser.h"
 
 #include <cerrno>
-#include <iomanip>
-#include <sstream>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 void Option::printUsage() const {
-  std::stringstream out;
-
-  out << ((type == COMMAND) ? "  " : "  --") << verbose_name;
+  printf("%s%s", ((type == COMMAND) ? "  " : "  --"), verbose_name);
 
   if (strcmp(short_name, "") != 0) {
-    out << ((type == COMMAND) ? ", " : ", -") << short_name;
+    printf("%s%s", ((type == COMMAND) ? ", " : ", -"), short_name);
   }
   if (strcmp(arg_name, "") != 0) {
-    out << " <" << std::right << arg_name << ">";
+    printf(" <%s>", arg_name);
   }
 
   if (strcmp(desc, "") != 0)
-    out << std::setw(25) << std::left << "\n" << desc;
+    printf("%-25s%s", "\n", desc);
 
-  printf("%s\n", out.str().c_str());
+  printf("\n");
 }
 
 void Option::parseArg(const char *arg) {
@@ -148,12 +147,15 @@ Option *ArgParser::parseFlags() {
 }
 
 void ArgParser::printUsage() {
-  std::stringstream out;
+  printf("Usage: %s", m_name);
+  if (commands.next_free_loc > 0) {
+    printf(" [COMMAND]");
+  }
+  if (flags.next_free_loc > 0) {
+    printf(" [OPTIONS] ...");
+  }
 
-  out << "Usage: " << m_name << (commands.next_free_loc > 0 ? " [COMMAND]" : "")
-      << (flags.next_free_loc > 0 ? " [OPTIONS] ..." : "");
-
-  printf("%s\n", out.str().c_str());
+  printf("\n");
 
   if (commands.next_free_loc > 0) {
     printf("\nCommands:\n");

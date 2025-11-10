@@ -1,11 +1,6 @@
 #pragma once
 
-#include <cstdio>
-#include <cstring>
-#include <functional>
 #include <limits>
-#include <map>
-#include <vector>
 
 enum OptionType { COMMAND, FLAG };
 enum ArgType { NONE, STR, NUM };

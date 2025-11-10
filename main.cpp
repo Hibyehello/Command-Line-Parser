@@ -1,5 +1,6 @@
-#include "math.h"
 #include "parser.h"
+
+#include <cstdio>
 
 int main(int argc, const char *argv[]) {
 
