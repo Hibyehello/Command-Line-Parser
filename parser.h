@@ -43,7 +43,7 @@ struct Arg {
 
 class ArgParser {
 public:
-  ArgParser(const char *app_name, int argc, const char *argv[]);
+  ArgParser(const char *app_name, int argc, const char *argv[], bool default_help = true);
 
   void parseArgs();
 
@@ -64,20 +64,29 @@ public:
   void addOptionDesc(const char *opt_name, const char *desc);
   void addCallback(const char *opt_name, std::function<void()> func);
 
-  bool canParse() { return arg_index < argc; };
+  bool canParse() {
+      if (argc < 2) {
+          if(!m_default_help) {
+              fprintf(stderr, "No arguments given!\n");
+          } else {
+              printUsage();
+          }
+      }
+      return arg_index < argc;
+  };
 
 private:
   const char *m_name;
+  bool m_default_help;
 
   bool has_commands = false;
-
   bool command_found = false;
 
   int arg_index = 1;
 
   std::vector<Option *> commands;
-
   std::vector<Option *> flags;
+
 
   Arg in_args;
 

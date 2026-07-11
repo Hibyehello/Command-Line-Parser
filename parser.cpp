@@ -42,12 +42,16 @@ void Option::parseArg(const char *arg) {
   arg_str = arg;
 }
 
-ArgParser::ArgParser(const char *app_name, int argc, const char *argv[])
-    : m_name(app_name), argc(argc), argv(argv), in_args(Arg{}) {}
+ArgParser::ArgParser(const char *app_name, int argc, const char *argv[], bool default_help)
+    : m_name(app_name), argc(argc), argv(argv), in_args(Arg{}), m_default_help(default_help) {}
 
 void ArgParser::parseArgs() {
   if (argc < 2) {
-    fprintf(stderr, "No arguments given!\n");
+    if(!m_default_help) {
+        fprintf(stderr, "No arguments given!\n");
+    } else {
+        printUsage();
+    }
     return;
   }
   if ((strcmp(argv[1] + 2, "help") == 0 || strcmp(argv[1] + 1, "h") == 0)) {
@@ -65,8 +69,12 @@ void ArgParser::parseArgs() {
 
 Option *ArgParser::parseCommand(bool reset_command_found) {
   if (argc < 2) {
-    fprintf(stderr, "No arguments given!\n");
-    return nullptr;
+      if(!m_default_help) {
+          fprintf(stderr, "No arguments given!\n");
+      } else {
+          printUsage();
+      }
+      return nullptr;
   }
   if ((strcmp(argv[arg_index] + 2, "help") == 0 ||
        strcmp(argv[arg_index] + 1, "h") == 0)) {
@@ -108,8 +116,12 @@ Option *ArgParser::parseCommand(bool reset_command_found) {
 
 Option *ArgParser::parseFlags() {
   if (argc < 2) {
-    fprintf(stderr, "No arguments given!\n");
-    return nullptr;
+      if(!m_default_help) {
+          fprintf(stderr, "No arguments given!\n");
+      } else {
+          printUsage();
+      }
+      return nullptr;
   }
   if ((strcmp(argv[1] + 2, "help") == 0 || strcmp(argv[1] + 1, "h") == 0)) {
     printUsage();
